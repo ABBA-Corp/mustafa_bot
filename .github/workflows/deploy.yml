@@ -1,0 +1,38 @@
+name: Production Django deploy MustafaBot
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: GIT pulling from github repository
+      uses: appleboy/scp-action@master
+      env:
+        HOST: ${{ secrets.HOST }}
+        USERNAME: ${{ secrets.USERNAME }}
+        PORT: ${{ secrets.PORT }}
+        KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      with:
+        source: "."
+        target: "/home/Bot/Mustafa"
+
+    - name: Command using from script
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        USERNAME: ${{ secrets.USERNAME }}
+        PORT: ${{ secrets.PORT }}
+        KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        script_stop: true
+        script: |
+          /home/Bot/Mustafa/env/bin/pip install -r /home/Bot/Mustafa/requirements.txt
+          systemctl restart mustafabot.service
+          sh /home/devops/mustafa_bot.sh "${{ github.event.head_commit.message }}"
