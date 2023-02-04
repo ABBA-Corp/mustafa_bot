@@ -55,7 +55,7 @@ async def go_home(message: types.Message, state: FSMContext):
 
 @dp.message_handler(CommandStart(), state='*')
 async def bot_start(message: types.Message, state: FSMContext):
-    user = await get_user(message.from_id)
+    user = await get_user(message.from_user.id)
     if user is not None:
         lang = await get_lang(message.from_user.id)
         if user.phone is not None:
