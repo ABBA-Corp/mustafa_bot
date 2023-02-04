@@ -70,7 +70,7 @@ async def language_keyboard():
 async def user_menu(lang):
     texts = []
     if lang == "uz":
-        texts = ["Buyurtma berishs", "Sozlamalar", "Biz haqimizda", "Fikr qoldirish", "Savat", "Buyurtmalar tarixi"]
+        texts = ["Buyurtma berish", "Sozlamalar", "Biz haqimizda", "Fikr qoldirish", "Savat", "Buyurtmalar tarixi"]
     elif lang == "ru":
         texts = ["Заказать сейчас", "Настройки", "О нас", "Обратная связь", "Корзина", "История заказов"]
     else:
