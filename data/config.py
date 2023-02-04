@@ -12,6 +12,7 @@ PGUSER = str(os.getenv("PGUSER"))
 PGPASSWORD = str(os.getenv("PGPASSWORD"))
 TAXI = str(os.getenv("YANDEX_TAXI"))
 TAXI_TOKEN = str(os.getenv("TAXI_TOKEN"))
+SENTRY_DSN = str(os.getenv("SENTRY_DSN"))
 
 SLEEP_TIME = .3
 
