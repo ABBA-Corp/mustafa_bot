@@ -69,7 +69,9 @@ async def create_order(user, order, longitude, latitude, address):
                                 data=json.dumps(data)
                                 ) as response:
             res = await response.json()
+            logging.error("test")
             logging.error(res)
+            logging.error("test2")
     async with aiohttp.ClientSession() as session:
         async with session.post(url=f"{config.TAXI}accept",
                                 headers={"Authorization": f"Bearer {config.TAXI_TOKEN}",
