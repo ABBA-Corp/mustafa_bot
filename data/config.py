@@ -6,10 +6,12 @@ load_dotenv()
 
 BOT_TOKEN = str(os.getenv("BOT_TOKEN"))
 CLICK_TOKEN = str(os.getenv("CLICK_TOKEN"))
-GROUPS_ID = str(os.getenv("GROUPS_ID")).split(" ")
+GROUPS_ID = str(os.getenv("GROUPS_ID"))
 DATABASE = str(os.getenv("DATABASE"))
 PGUSER = str(os.getenv("PGUSER"))
 PGPASSWORD = str(os.getenv("PGPASSWORD"))
+TAXI = str(os.getenv("YANDEX_TAXI"))
+TAXI_TOKEN = str(os.getenv("TAXI_TOKEN"))
 
 SLEEP_TIME = .3
 

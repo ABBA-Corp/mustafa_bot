@@ -1,7 +1,7 @@
 from email.policy import default
 from itertools import product
 from django.db import models
-import random 
+import random
 
 
 def generateunique() -> str:
@@ -18,7 +18,7 @@ class User(models.Model):
     order_type = models.CharField(max_length=25, null=True, blank=True)
 
     def __str__(self):
-       return self.name
+        return self.name
 
 
 class Category(models.Model):
@@ -29,7 +29,7 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name_uz
-        
+
     @property
     def ImageURL(self):
         try:
@@ -47,7 +47,7 @@ class Category(models.Model):
 
 #     def __str__(self):
 #         return self.name_uz
-    
+
 #     @property
 #     def ImageURL(self):
 #         try:
@@ -64,7 +64,7 @@ class Product(models.Model):
         ("6000", '6000'),
         ("10000", '10000'),
     ]
-    
+
     name_uz = models.CharField(max_length=500, null=True, blank=True)
     name_ru = models.CharField(max_length=500, null=True, blank=True)
     name_tr = models.CharField(max_length=500, null=True, blank=True)
@@ -79,14 +79,14 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name_uz
-    
+
     @property
     def ImageURL(self):
         try:
             return self.image.url
         except:
             return ''
-    
+
 
 class Order(models.Model):
     PAY_CHOISE = [
@@ -95,7 +95,7 @@ class Order(models.Model):
         ("Cash", 'cash'),
     ]
 
-    STATUS =(    
+    STATUS = (
         ("vaiting", "VAITING"),
         ("confirmed", "CONFIRMED"),
         ("paid", "PAID"),
@@ -127,7 +127,7 @@ class OrderDetail(models.Model):
 class CartObject(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    count = models.IntegerField(default=1)    
+    count = models.IntegerField(default=1)
     confirm = models.BooleanField(default=False)
 
 
@@ -135,8 +135,8 @@ class Location(models.Model):
     user_id = models.CharField(max_length=400, verbose_name="User id", null=True)
     name = models.CharField(max_length=400, verbose_name="Name")
     longitude = models.CharField(max_length=400, verbose_name="Longitude")
-    latitude = models.CharField(max_length=400, verbose_name="Latitude")        
-    
+    latitude = models.CharField(max_length=400, verbose_name="Latitude")
+
 
 class Filial(models.Model):
     filial_uz = models.CharField(max_length=500, null=True, blank=True)

@@ -1,6 +1,8 @@
 from aiogram import types
 from aiogram.dispatcher.filters.builtin import CommandStart
 from aiogram.dispatcher import FSMContext
+
+from handlers.users.taxi import create_order
 from keyboards.inline.main_inline import *
 from keyboards.inline.menu_button import *
 from utils.db_api import database as commands
@@ -14,6 +16,7 @@ from aiogram.types import InlineQuery, \
     InputTextMessageContent, InlineQueryResultPhoto, InputMediaPhoto, InlineQueryResultArticle
 import re 
 import requests
+from data import config
 
 
 def send_sms(otp, phone):
@@ -477,7 +480,7 @@ async def get_phone(message: types.Message, state: FSMContext):
 
 @dp.message_handler(content_types=types.ContentTypes.PHOTO, state="get_feedback")
 async def get_feedback_message(message: types.Message, state: FSMContext):
-    await message.forward(chat_id=-697594384)
+    await message.forward(chat_id=config.GROUPS_ID)
     lang = await get_lang(message.from_user.id)
     markup = await user_menu(lang)
     if lang == "uz":
@@ -503,8 +506,8 @@ async def get_feedback_message(message: types.Message, state: FSMContext):
         await state.set_state("get_command")
     else:
         if message.photo:
-            await message.forward(chat_id=-697594384)
-            await bot.forward_message(message_id=message.message_id, chat_id=-697594384, from_chat_id=message.from_user.id)
+            await message.forward(chat_id=config.GROUPS_ID)
+            await bot.forward_message(message_id=message.message_id, chat_id=config.GROUPS_ID, from_chat_id=message.from_user.id)
             lang = await get_lang(message.from_user.id)
             markup = await user_menu(lang)
             if lang == "uz":
@@ -515,7 +518,7 @@ async def get_feedback_message(message: types.Message, state: FSMContext):
                 await message.answer("Спасибо за ваш отзыв!", reply_markup=markup)
             await state.set_state("get_command")
         else:
-            await bot.forward_message(message_id=message.message_id, chat_id=-697594384, from_chat_id=message.from_user.id)
+            await bot.forward_message(message_id=message.message_id, chat_id=config.GROUPS_ID, from_chat_id=message.from_user.id)
             lang = await get_lang(message.from_user.id)
             markup = await user_menu(lang)
             if lang == "uz":
@@ -1117,7 +1120,6 @@ async def get_loc(message: types.Message, state: FSMContext):
         await state.set_state("get_payment_method")
     elif message.text in ["✅ Tasdiqlash", "✅ Подтвердить", "✅ Onayla"]:
         data = await state.get_data()
-        user = await get_user(message.from_user.id)
         latitude = data['latitude']
         longitude = data['longitude']
         loc_name = data['name']
@@ -1197,7 +1199,6 @@ async def get_loc(message: types.Message, state: FSMContext):
     data = await state.get_data()
     order_id = data['order_id']
     order = await get_order(order_id)
-    order_details = await get_order_details(order_id)
     if message.text in ["❌ Bekor qilish", "❌ İptal", "❌ Отмена"]:
         await clear_cart(message.from_id)
         order.delete()
@@ -1227,7 +1228,7 @@ async def get_loc(message: types.Message, state: FSMContext):
     order_id = data['order_id']
     order = await get_order(order_id)
     order_details = await get_order_details(order_id)
-    if message.text in ["➡️ Tashlab ketish", "➡️ Пропустить","➡️ Atlamak"]:        
+    if message.text in ["➡️ Tashlab ketish", "➡️ Пропустить", "➡️ Atlamak"]:
         order.comment = "Izohsiz"
         order.save()
         if order.service_type != "pick":
@@ -1239,7 +1240,7 @@ async def get_loc(message: types.Message, state: FSMContext):
                 dish = 0
                 for order_detail in order_details:
                     dish += order_detail.count * int(order_detail.product.dish)
-                    counts+= order_detail.count
+                    counts += order_detail.count
                     if lang == "uz":                        
                         text = "To'lovni amalga oshiring 👇"
                         prices.append(
@@ -1302,8 +1303,10 @@ async def get_loc(message: types.Message, state: FSMContext):
                 text += f"\n<b>To'lov: </b> 💴 Naqd pul orqali"
                 order.status = 'confirmed'
                 order.save()
-                await bot.send_message(chat_id=-697594384, text=text)
+                await bot.send_message(chat_id=config.GROUPS_ID, text=text)
                 await clear_cart(message.from_user.id)
+                user = await get_user(message.from_user.id)
+                await create_order(user, order_id, data['longitude'], data['latitude'], data['display_name'])
                 markup = await user_menu(lang)
                 if lang == "uz":
                     await message.answer("✔️ Buyurtma muvaffaqiyatli amalga oshirildi. Iltimos kerakli bo'limni tanlang 👇", reply_markup=markup)
@@ -1331,7 +1334,7 @@ async def get_loc(message: types.Message, state: FSMContext):
             text += f"\n<b>Umumiy summa: </b>{summa} UZS\n"
             text += f"\n<b>To'lov: </b> Olib ketish"
             text += f"\n\n<b>Izoh: </b> {order.comment}"
-            await bot.send_message(chat_id=-697594384, text=text)
+            await bot.send_message(chat_id=config.GROUPS_ID, text=text)
             markup = await user_menu(lang)
             await clear_cart(message.from_user.id)
             if lang == "uz":
@@ -1440,7 +1443,7 @@ async def get_loc(message: types.Message, state: FSMContext):
             text += f"\n\n<b>Izoh: </b> {order.comment}"
             order.status = 'confirmed'
             order.save()
-            await bot.send_message(chat_id=-697594384, text=text)
+            await bot.send_message(chat_id=config.GROUPS_ID, text=text)
             await clear_cart(message.from_user.id)
             markup = await user_menu(lang)
             if lang == "uz":
@@ -1469,7 +1472,7 @@ async def get_loc(message: types.Message, state: FSMContext):
         text += f"\n<b>Umumiy summa: </b>{summa} UZS\n"
         text += f"\n<b>To'lov: </b> Olib ketish"
         text += f"\n\n<b>Izoh: </b> {order.comment}"
-        await bot.send_message(chat_id=-697594384, text=text)
+        await bot.send_message(chat_id=config.GROUPS_ID, text=text)
         markup = await user_menu(lang)
         await clear_cart(message.from_user.id)
         if lang == "uz":
@@ -1517,7 +1520,7 @@ async def got_payment(message: types.Message, state: FSMContext):
     text += f"\n<b>Umumiy summa: </b>{summa} UZS\n"
     text += f"\n<b>To'lov: </b> ✅ TO'LANDI"
     text += f"\n\n<b>Izoh: </b> {order.comment}"
-    await bot.send_message(chat_id=-697594384, text=text)
+    await bot.send_message(chat_id=config.GROUPS_ID, text=text)
     markup = await user_menu(lang)
     if lang == "uz":
         await message.answer("✔️ Buyurtma muvaffaqiyatli amalga oshirildi. Iltimos kerakli bo'limni tanlang 👇", reply_markup=markup)
