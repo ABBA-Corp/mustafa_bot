@@ -110,7 +110,7 @@ async def get_phone(message: types.Message, state: FSMContext):
 async def get_phone(message: types.Message, state: FSMContext):
     lang = await get_lang(message.from_user.id)
     if "⬅️️" in message.text:
-        user = await get_user(message.from_id)
+        user = await get_user(message.from_user.id)
         if user is not None:
             lang = await get_lang(message.from_user.id)
             if user.phone is not None:
@@ -267,11 +267,11 @@ async def get_user_command(message: types.Message, state: FSMContext):
         await bot.delete_message(message_id=message_id, chat_id=message.from_user.id)
         await state.set_state("get_category")
     elif command in ["📥  Savat", "📥  Корзина", "📥  Alışveriş Sepeti"]:
-        text = await get_carts(message.from_id)
+        text = await get_carts(message.from_user.id)
         if text is not None:
-            cart_test = await check_cart(message.from_id)
+            cart_test = await check_cart(message.from_user.id)
             if cart_test:
-                markup = await cart_keyboard(lang=lang, user_id=message.from_id)
+                markup = await cart_keyboard(lang=lang, user_id=message.from_user.id)
                 await message.answer(text=text, reply_markup=markup, parse_mode='HTML')
             else:
                 go_m = await go_order(lang)
@@ -288,7 +288,7 @@ async def get_user_command(message: types.Message, state: FSMContext):
         await state.set_state("get_cart_command")
     elif command in ["🗂 Buyurtmalar tarixi", "🗂 История заказов", "🗂 Satın alım geçmişi"]:
         summa = 0
-        orders = await get_orders(message.from_id)
+        orders = await get_orders(message.from_user.id)
         if lang =="uz":
             text = "<b>🛒Sizning Buyurtmalaringiz tarixi</b>\n\n"
         elif lang =="ru":
@@ -546,14 +546,14 @@ async def get_command_about(message: types.Message, state: FSMContext):
 
 @dp.message_handler(state="get_service_type")
 async def get_command_about(message: types.Message, state: FSMContext):
-    user = await get_user(message.from_id)
+    user = await get_user(message.from_user.id)
     lang = await get_lang(message.from_user.id)
     if message.text in ["⬅️ Geri", "⬅️ Orqaga", "⬅️ Назад"]:
-        text = await get_carts(message.from_id)
+        text = await get_carts(message.from_user.id)
         if text is not None:
-            cart_test = await check_cart(message.from_id)
+            cart_test = await check_cart(message.from_user.id)
             if cart_test:
-                markup = await cart_keyboard(lang=lang, user_id=message.from_id)
+                markup = await cart_keyboard(lang=lang, user_id=message.from_user.id)
                 await message.answer(text=text, reply_markup=markup, parse_mode='HTML')
             else:
                 go_m = await go_order(lang)
@@ -580,10 +580,10 @@ async def get_command_about(message: types.Message, state: FSMContext):
             address = "Götürmek"
         if lang == "ru":
             address = "Самовывоз"
-        order = await add_order(user_id=message.from_id, date=date, address=address)
+        order = await add_order(user_id=message.from_user.id, date=date, address=address)
         order.service_type = order_type
         await state.update_data(order_id=order.id)
-        carts = await get_cart_objects(message.from_id)
+        carts = await get_cart_objects(message.from_user.id)
         for cart in carts:
             await add_order_detail(order_id=order.id, product_id=cart.product.id, count=cart.count)
         order_deails = await get_order_details(order.id) 
@@ -850,7 +850,7 @@ async def get_count(message: types.Message, state: FSMContext):
             await message.answer("Botumuza hoş geldiniz. Lütfen istediğiniz bölümü seçin 👇", reply_markup=markup)
         await state.set_state("get_command")
     elif message.text in ["🗑 Savatchani tozalash", "🗑 Çöp kutusunu boşalt", "🗑 Очистить корзину"]:
-        await clear_cart(message.from_id)
+        await clear_cart(message.from_user.id)
         markup = await user_menu(lang)
         if lang == "uz":
             await message.answer("🗑 Savatcha tozalandi. Iltimos kerakli bo'limni tanlang 👇", reply_markup=markup)
@@ -876,10 +876,10 @@ async def get_count(message: types.Message, state: FSMContext):
             pass
         if product is not None:
             await delete_cart_item(product=product, user_id=message.from_user.id)
-            text = await get_carts(message.from_id)
+            text = await get_carts(message.from_user.id)
             markup = await user_menu(lang)
             if text not in ["⚠️ Hozircha savatingiz bo'sh", '⚠️ Sepetiniz boş', '⚠️ Ваша корзина пуста.']:
-                markup = await cart_keyboard(lang=lang, user_id=message.from_id)
+                markup = await cart_keyboard(lang=lang, user_id=message.from_user.id)
                 await message.answer(text=text, reply_markup=markup, parse_mode='HTML')
                 await state.set_state("get_cart_command")
             else:
@@ -897,12 +897,12 @@ async def get_count(message: types.Message, state: FSMContext):
     lang = await get_lang(message.from_user.id)
     text = ''
     data = await state.get_data()
-    user = await get_user(message.from_id)
+    user = await get_user(message.from_user.id)
     order_type = user.order_type
     if "⬅️" in message.text:
-        text = await get_carts(message.from_id)
+        text = await get_carts(message.from_user.id)
         if text is not None:
-            markup = await cart_keyboard(lang=lang, user_id=message.from_id)
+            markup = await cart_keyboard(lang=lang, user_id=message.from_user.id)
             await message.answer(text=text, reply_markup=markup, parse_mode='HTML')
             await state.set_state("get_cart_command")            
     elif message.text in ["🔵 Click", "🟢 Payme"]:
@@ -942,10 +942,10 @@ async def get_count(message: types.Message, state: FSMContext):
         else:
             order_type = "pick"
             date = datetime.datetime.now() + timedelta(hours=5)
-            order = await add_order(user_id=message.from_id, date=date, address="Olib ketish")
+            order = await add_order(user_id=message.from_user.id, date=date, address="Olib ketish")
             order.service_type = order_type
             await state.update_data(order_id=order.id)
-            carts = await get_cart_objects(message.from_id)
+            carts = await get_cart_objects(message.from_user.id)
             for cart in carts:
                 await add_order_detail(order_id=order.id, product_id=cart.product.id, count=cart.count)
             order_deails = await get_order_details(order.id) 
@@ -1030,7 +1030,7 @@ async def get_location_address(message: types.Message, state: FSMContext):
 
 @dp.message_handler(content_types=types.ContentType.TEXT, state='get_address')
 async def get_loc(message: types.Message, state: FSMContext):
-    lang = await get_lang(message.from_id)
+    lang = await get_lang(message.from_user.id)
     if "⬅️" in  message.text:
             markup = await pay_method(lang)
             if lang == "uz":
@@ -1066,7 +1066,7 @@ async def get_loc(message: types.Message, state: FSMContext):
     
 @dp.message_handler(content_types=types.ContentType.TEXT, state='get_location')
 async def get_loc(message: types.Message, state: FSMContext):
-    lang = await get_lang(message.from_id)
+    lang = await get_lang(message.from_user.id)
     if "⬅️" in  message.text:
         lang = await get_lang(message.from_user.id)
         text = []
@@ -1081,7 +1081,7 @@ async def get_loc(message: types.Message, state: FSMContext):
         await state.set_state("get_address")
     else:
         loc = message.text
-        location = await get_location_by_name(name=loc, user_id=message.from_id)
+        location = await get_location_by_name(name=loc, user_id=message.from_user.id)
         if location is not None:
             geolocator = Nominatim(user_agent="geoapiExercises")
             Latitude = str(location.latitude)
@@ -1108,7 +1108,7 @@ async def get_loc(message: types.Message, state: FSMContext):
 
 @dp.message_handler(content_types=types.ContentType.TEXT, state='confirm_address')
 async def get_loc(message: types.Message, state: FSMContext):
-    lang = await get_lang(message.from_id)
+    lang = await get_lang(message.from_user.id)
     if "⬅️️" in message.text:
         markup = await pay_method(lang)
         if lang == "uz":
@@ -1126,10 +1126,10 @@ async def get_loc(message: types.Message, state: FSMContext):
         address = data['display_name']
         card_type = data["card_type"]
         date = datetime.datetime.now() + timedelta(hours=5)
-        order = await add_order(user_id=message.from_id, date=date, address=address)
+        order = await add_order(user_id=message.from_user.id, date=date, address=address)
         await state.update_data(order_id=order.id)
         order.address = address
-        carts = await get_cart_objects(message.from_id)
+        carts = await get_cart_objects(message.from_user.id)
         for cart in carts:
             await add_order_detail(order_id=order.id, product_id=cart.product.id, count=cart.count)
         order_deails = await get_order_details(order.id) 
@@ -1195,12 +1195,12 @@ async def get_loc(message: types.Message, state: FSMContext):
 
 @dp.message_handler(content_types=types.ContentType.TEXT, state='confirm_order')
 async def get_loc(message: types.Message, state: FSMContext):
-    lang = await get_lang(message.from_id)
+    lang = await get_lang(message.from_user.id)
     data = await state.get_data()
     order_id = data['order_id']
     order = await get_order(order_id)
     if message.text in ["❌ Bekor qilish", "❌ İptal", "❌ Отмена"]:
-        await clear_cart(message.from_id)
+        await clear_cart(message.from_user.id)
         order.delete()
         markup = await user_menu(lang)
         if lang == "uz":
@@ -1223,7 +1223,7 @@ async def get_loc(message: types.Message, state: FSMContext):
 
 @dp.message_handler(content_types=types.ContentType.TEXT, state='comment')
 async def get_loc(message: types.Message, state: FSMContext):
-    lang = await get_lang(message.from_id)
+    lang = await get_lang(message.from_user.id)
     data = await state.get_data()
     order_id = data['order_id']
     order = await get_order(order_id)
@@ -1285,7 +1285,7 @@ async def get_loc(message: types.Message, state: FSMContext):
                                     )
                 await state.set_state("payment") 
             else:   
-                await clear_cart(message.from_id)
+                await clear_cart(message.from_user.id)
                 summa = 0
                 dish = 0
                 counts = 0
@@ -1364,7 +1364,7 @@ async def get_loc(message: types.Message, state: FSMContext):
  
 @dp.message_handler(content_types=types.ContentType.TEXT, state='get_comment')
 async def get_loc(message: types.Message, state: FSMContext):
-    lang = await get_lang(message.from_id)
+    lang = await get_lang(message.from_user.id)
     data = await state.get_data()
     order_id = data['order_id']
     order = await get_order(order_id)
@@ -1424,7 +1424,7 @@ async def get_loc(message: types.Message, state: FSMContext):
                                 )
             await state.set_state("payment") 
         else:   
-            await clear_cart(message.from_id)
+            await clear_cart(message.from_user.id)
             summa = 0
             dish = 0
             counts = 0
@@ -1491,7 +1491,7 @@ async def checkout(pre_checkout_query: types.PreCheckoutQuery):
 
 @dp.message_handler(content_types=types.ContentTypes.SUCCESSFUL_PAYMENT, state="payment")
 async def got_payment(message: types.Message, state: FSMContext):
-    lang = await get_lang(message.from_id)
+    lang = await get_lang(message.from_user.id)
     data = await state.get_data()
     order_id = data['order_id']
     order = await get_order(order_id)
@@ -1503,7 +1503,7 @@ async def got_payment(message: types.Message, state: FSMContext):
     await bot.delete_message(chat_id=message.from_user.id, message_id=message_id)
     order_details = await get_order_details(order_id)
     await bot.delete_message(chat_id=message.from_user.id, message_id=message_id)
-    await clear_cart(message.from_id)
+    await clear_cart(message.from_user.id)
     summa = 0
     dish = 0
     counts = 0
@@ -1534,7 +1534,7 @@ async def got_payment(message: types.Message, state: FSMContext):
 @dp.message_handler(content_types=types.ContentTypes.TEXT, state="payment")
 async def get_payment_back(message: types.Message, state: FSMContext):
     if "⬅️" in message.text:
-        lang = await get_lang(message.from_id)
+        lang = await get_lang(message.from_user.id)
         data = await state.get_data()
         message_id = int(data["message_id"])
         await bot.delete_message(chat_id=message.from_user.id, message_id=message_id)
@@ -1543,11 +1543,11 @@ async def get_payment_back(message: types.Message, state: FSMContext):
         order_id = data['order_id']
         order = await get_order(order_id)
         order.delete()
-        text = await get_carts(message.from_id)
+        text = await get_carts(message.from_user.id)
         if text is not None:
-            cart_test = await check_cart(message.from_id)
+            cart_test = await check_cart(message.from_user.id)
             if cart_test:
-                markup = await cart_keyboard(lang=lang, user_id=message.from_id)
+                markup = await cart_keyboard(lang=lang, user_id=message.from_user.id)
                 await message.answer(text=text, reply_markup=markup, parse_mode='HTML')
             else:
                 go_m = await go_order(lang)
