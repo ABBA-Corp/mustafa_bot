@@ -1,3 +1,4 @@
+import asyncio
 import json
 import uuid
 import logging
@@ -7,7 +8,6 @@ from data import config
 
 
 async def create_order(user, order, longitude, latitude, address, comment):
-    res = []
     data = {
         "client_requirements": {
             "taxi_class": "courier"
@@ -70,7 +70,7 @@ async def create_order(user, order, longitude, latitude, address, comment):
                                 data=json.dumps(data)
                                 ) as response:
             res = await response.json()
-
+    await asyncio.sleep(2)
     async with aiohttp.ClientSession() as session:
         async with session.post(url=f"{config.TAXI}accept",
                                 headers={"Authorization": f"Bearer {config.TAXI_TOKEN}",
