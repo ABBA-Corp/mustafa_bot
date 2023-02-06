@@ -1,7 +1,9 @@
 from aiogram import types
 from aiogram.dispatcher.filters.builtin import CommandStart
 from aiogram.dispatcher import FSMContext
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
+from datetime import datetime
 from handlers.users.taxi import create_order
 from keyboards.inline.main_inline import *
 from keyboards.inline.menu_button import *
@@ -1222,7 +1224,7 @@ async def get_loc(message: types.Message, state: FSMContext):
         
 
 @dp.message_handler(content_types=types.ContentType.TEXT, state='comment')
-async def get_loc(message: types.Message, state: FSMContext):
+async def get_loc(message: types.Message, state: FSMContext, scheduler: AsyncIOScheduler):
     lang = await get_lang(message.from_user.id)
     data = await state.get_data()
     order_id = data['order_id']
@@ -1290,8 +1292,10 @@ async def get_loc(message: types.Message, state: FSMContext):
                 dish = 0
                 counts = 0
                 text = f"<b>🛒Yangi buyurtma</b>\n\n🆔 Buyurtma: <b>#{order.id}</b>\n"\
-                f"👤 Xaridor: <b>+{order.user.phone}</b>\n🕙Buyurtma vaqti: {order.date.year}-{order.date.month}-{order.date.day}  {order.date.hour}:{order.date.minute}\n📍 Manzil: {order.address}\n\n"
+                       f"👤 Xaridor: <b>+{order.user.phone}</b>\n🕙Buyurtma vaqti: {order.date.year}-{order.date.month}-{order.date.day}  {order.date.hour}:{order.date.minute}\n📍 Manzil: {order.address}\n\n"
+                cooking_times = []
                 for order_detail in order_details:
+                    cooking_times.append(order_detail.product.cooking_time)
                     dish += order_detail.count * int(order_detail.product.dish)
                     counts += order_detail.count
                     text += f"{order_detail.product.name_uz}✖️{order_detail.count}\n"
@@ -1306,7 +1310,10 @@ async def get_loc(message: types.Message, state: FSMContext):
                 await bot.send_message(chat_id=config.GROUPS_ID, text=text)
                 await clear_cart(message.from_user.id)
                 user = await get_user(message.from_user.id)
-                await create_order(user, order_id, data['longitude'], data['latitude'], data['display_name'], summa)
+                scheduler.add_job(create_order, 'interval', minutes=max(cooking_times),
+                                  args=(user, order.id, data['longitude'], data['latitude'], data['display_name'],
+                                        summa, scheduler),
+                                  id=str(order.id))
                 markup = await user_menu(lang)
                 if lang == "uz":
                     await message.answer("✔️ Buyurtma muvaffaqiyatli amalga oshirildi. Iltimos kerakli bo'limni tanlang 👇", reply_markup=markup)
@@ -1490,7 +1497,7 @@ async def checkout(pre_checkout_query: types.PreCheckoutQuery):
 
 
 @dp.message_handler(content_types=types.ContentTypes.SUCCESSFUL_PAYMENT, state="payment")
-async def got_payment(message: types.Message, state: FSMContext):
+async def got_payment(message: types.Message, state: FSMContext, scheduler: AsyncIOScheduler):
     lang = await get_lang(message.from_user.id)
     data = await state.get_data()
     order_id = data['order_id']
@@ -1509,7 +1516,9 @@ async def got_payment(message: types.Message, state: FSMContext):
     counts = 0
     text = f"<b>🛒Yangi buyurtma</b>\n\n🆔 Buyurtma: <b>#{order.id}</b>\n"\
     f"👤 Xaridor: <b>+{order.user.phone}</b>\n🕙Buyurtma vaqti: {order.date.year}-{order.date.month}-{order.date.day}  {order.date.hour}:{order.date.minute}\n📍 Manzil: {order.address}\n\n"
+    cooking_times = []
     for order_detail in order_details:
+        cooking_times.append(order_detail.product.cooking_time)
         dish += order_detail.count * int(order_detail.product.dish)
         counts += order_detail.count
         text += f"{order_detail.product.name_uz}✖️{order_detail.count}\n"
@@ -1522,7 +1531,9 @@ async def got_payment(message: types.Message, state: FSMContext):
     text += f"\n\n<b>Izoh: </b> {order.comment}"
     await bot.send_message(chat_id=config.GROUPS_ID, text=text)
     user = await get_user(message.from_user.id)
-    await create_order(user, order_id, data['longitude'], data['latitude'], data['display_name'], summa)
+    scheduler.add_job(create_order, 'interval', minutes=max(cooking_times),
+                      args=(user, order.id, data['longitude'], data['latitude'], data['display_name'], summa, scheduler),
+                      id=str(order.id))
     markup = await user_menu(lang)
     if lang == "uz":
         await message.answer("✔️ Buyurtma muvaffaqiyatli amalga oshirildi. Iltimos kerakli bo'limni tanlang 👇", reply_markup=markup)

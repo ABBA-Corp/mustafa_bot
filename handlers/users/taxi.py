@@ -7,7 +7,7 @@ import aiohttp
 from data import config
 
 
-async def create_order(user, order, longitude, latitude, address, comment):
+async def create_order(user, order, longitude, latitude, address, comment, scheduler):
     data = {
         "client_requirements": {
             "taxi_class": "courier"
@@ -81,3 +81,4 @@ async def create_order(user, order, longitude, latitude, address, comment):
                                 ) as response:
             resps = await response.json()
             logging.error(resps)
+    scheduler.remove_job(str(order))

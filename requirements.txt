@@ -5,6 +5,7 @@ pytz~=2020.1
 idna~=2.10
 multidict~=5.1.0
 Babel~=2.9.1
+APScheduler~=3.10.0
 sqlparse~=0.3.1
 asgiref~=3.2.10
 click~=7.1.2

@@ -3,6 +3,8 @@ import django
 from aiogram import Bot, Dispatcher
 import logging
 import sentry_sdk
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
 from data import config
 
 
@@ -11,7 +13,7 @@ async def on_startup(dp):
     import filters
     import middlewares
     filters.setup(dp)
-    middlewares.setup(dp)
+    middlewares.setup(dp, scheduler)
     await set_default_commands(dp)
 
 
@@ -42,5 +44,6 @@ if __name__ == '__main__':
 
     from aiogram.utils import executor
     from handlers import dp
-
+    scheduler = AsyncIOScheduler()
+    scheduler.start()
     executor.start_polling(dp, on_startup=on_startup, skip_updates=True)

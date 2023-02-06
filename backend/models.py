@@ -76,6 +76,7 @@ class Product(models.Model):
     image = models.ImageField(null=True, blank=True)
     stop_list = models.BooleanField(default=False)
     dish = models.CharField(max_length=100, choices=DISH, default='0')
+    cooking_time = models.PositiveIntegerField(blank=False, null=False, default=1)
 
     def __str__(self):
         return self.name_uz
