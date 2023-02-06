@@ -6,7 +6,7 @@ import aiohttp
 from data import config
 
 
-async def create_order(user, order, longitude, latitude, address):
+async def create_order(user, order, longitude, latitude, address, comment):
     res = []
     data = {
         "client_requirements": {
@@ -29,6 +29,7 @@ async def create_order(user, order, longitude, latitude, address):
                         float(longitude),
                         float(latitude)
                     ],
+                    "comment": f"Mustafa uchun {comment} UZS",
                     "fullname": address
                 },
                 "contact": {

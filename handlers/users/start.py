@@ -1306,7 +1306,7 @@ async def get_loc(message: types.Message, state: FSMContext):
                 await bot.send_message(chat_id=config.GROUPS_ID, text=text)
                 await clear_cart(message.from_user.id)
                 user = await get_user(message.from_user.id)
-                await create_order(user, order_id, data['longitude'], data['latitude'], data['display_name'])
+                await create_order(user, order_id, data['longitude'], data['latitude'], data['display_name'], summa)
                 markup = await user_menu(lang)
                 if lang == "uz":
                     await message.answer("✔️ Buyurtma muvaffaqiyatli amalga oshirildi. Iltimos kerakli bo'limni tanlang 👇", reply_markup=markup)
@@ -1496,7 +1496,7 @@ async def got_payment(message: types.Message, state: FSMContext):
     order_id = data['order_id']
     order = await get_order(order_id)
     order.status = "PAID"
-    order.save()    
+    order.save()
     message_id = int(data["message_id"])
     await bot.delete_message(chat_id=message.from_user.id, message_id=message_id)
     message_id = int(data["message_id"]) + 1 
@@ -1521,6 +1521,8 @@ async def got_payment(message: types.Message, state: FSMContext):
     text += f"\n<b>To'lov: </b> ✅ TO'LANDI"
     text += f"\n\n<b>Izoh: </b> {order.comment}"
     await bot.send_message(chat_id=config.GROUPS_ID, text=text)
+    user = await get_user(message.from_user.id)
+    await create_order(user, order_id, data['longitude'], data['latitude'], data['display_name'], summa)
     markup = await user_menu(lang)
     if lang == "uz":
         await message.answer("✔️ Buyurtma muvaffaqiyatli amalga oshirildi. Iltimos kerakli bo'limni tanlang 👇", reply_markup=markup)
