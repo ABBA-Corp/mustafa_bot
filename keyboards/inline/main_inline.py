@@ -23,6 +23,12 @@ async def about_menu(lang):
     return markup
 
 
+async def admin_conf_btn(order_id):
+    btns = InlineKeyboardMarkup(row_width=1).add(InlineKeyboardButton('✅ Qabul qilish', callback_data=f"co{order_id}"),
+                                                 InlineKeyboardButton('❌ Bekor qilish', callback_data=f"ca{order_id}"),)
+    return btns
+
+
 async def go_search(lang):
     texts = []
     if lang == "uz":

@@ -325,7 +325,7 @@ def get_location_by_name(user_id, name):
     except Exception as exx:
         print(exx)
         return None
-    
+
     
 @sync_to_async
 def get_filial_by_name(name):

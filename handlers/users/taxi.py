@@ -1,13 +1,12 @@
 import asyncio
 import json
 import uuid
-import logging
 import aiohttp
 
 from data import config
 
 
-async def create_order(user, order, longitude, latitude, address, comment, scheduler):
+async def create_order(user, order, longitude, latitude, address, comment, scheduler, bot):
     data = {
         "client_requirements": {
             "taxi_class": "courier"
@@ -80,5 +79,26 @@ async def create_order(user, order, longitude, latitude, address, comment, sched
                                 data=json.dumps({"version": 1})
                                 ) as response:
             resps = await response.json()
-            logging.error(resps)
+    await asyncio.sleep(1)
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url=f"{config.TAXI}info/?claim_id={res['id']}",
+                                headers={"Authorization": f"Bearer {config.TAXI_TOKEN}",
+                                         "Accept-Language": "ru",
+                                         "Content-Type": "application/json"},
+                                params={"claim_id": res['id']},
+                                data=json.dumps({"version": 1})
+                                ) as response:
+            response = await response.json()
+
+        msg = ""
+        if user.lang == "uz":
+            msg = f"Buyurtma: #{order}\n" \
+                  f"Yetkazib berish narxi {response['pricing']['offer']['price']} so'm"
+        if user.lang == "ru":
+            msg = f"Заказ: #{order}" \
+                  f"Сумма доставки {response['pricing']['offer']['price']} сум"
+        if user.lang == "tr":
+            msg = f"Sipariş: #{order}" \
+                  f"Teslimat miktarı {response['pricing']['offer']['price']} som"
+        await bot.send_message(chat_id=user.user_id, text=msg)
     scheduler.remove_job(str(order))

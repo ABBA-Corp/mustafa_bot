@@ -1065,7 +1065,8 @@ async def get_loc(message: types.Message, state: FSMContext):
             elif lang == 'tr':
                 text = '🗑 Adres listesi boş'
             await message.answer(text)
-    
+
+
 @dp.message_handler(content_types=types.ContentType.TEXT, state='get_location')
 async def get_loc(message: types.Message, state: FSMContext):
     lang = await get_lang(message.from_user.id)
@@ -1107,6 +1108,7 @@ async def get_loc(message: types.Message, state: FSMContext):
             markup = await confirm_address(lang)
             await bot.send_message(chat_id=message.from_user.id, text=text, reply_markup=markup)
             await state.set_state('confirm_address')
+
 
 @dp.message_handler(content_types=types.ContentType.TEXT, state='confirm_address')
 async def get_loc(message: types.Message, state: FSMContext):
@@ -1306,21 +1308,19 @@ async def get_loc(message: types.Message, state: FSMContext, scheduler: AsyncIOS
                 text += f"\n<b>Umumiy summa: </b>{summa} UZS\n"
                 text += f"\n<b>To'lov: </b> 💴 Naqd pul orqali"
                 order.status = 'confirmed'
+                order.longitude = data['longitude']
+                order.latitude = data['latitude']
                 order.save()
-                await bot.send_message(chat_id=config.GROUPS_ID, text=text)
+                await bot.send_message(chat_id=config.GROUPS_ID, text=text,
+                                       reply_markup=await admin_conf_btn(order_id=order.id))
                 await clear_cart(message.from_user.id)
-                user = await get_user(message.from_user.id)
-                scheduler.add_job(create_order, 'interval', minutes=max(cooking_times),
-                                  args=(user, order.id, data['longitude'], data['latitude'], data['display_name'],
-                                        summa, scheduler),
-                                  id=str(order.id))
                 markup = await user_menu(lang)
                 if lang == "uz":
-                    await message.answer("✔️ Buyurtma muvaffaqiyatli amalga oshirildi. Iltimos kerakli bo'limni tanlang 👇", reply_markup=markup)
+                    await message.answer("✔️ Buyurtma qabul qilindi. Buyurtma tayyor bo'lgandan so'ng sizga yetkazib berish narhini yuboramiz. Iltimos kerakli bo'limni tanlang 👇", reply_markup=markup)
                 elif lang == "tr":
-                    await message.answer("✔️ Sipariş başarıyla verildi. Lütfen istediğiniz bölümü seçin 👇", reply_markup=markup)
+                    await message.answer("✔️ Sipariş başarıyla verildi. Sipariş hazır olduğunda, size teslimat ücretini göndereceğiz. Lütfen istediğiniz bölümü seçin 👇", reply_markup=markup)
                 elif lang == "ru":
-                    await message.answer("✔️ Заказ был успешно размещен. Пожалуйста, выберите нужный раздел 👇", reply_markup=markup)
+                    await message.answer("✔️ Заказ был успешно размещен. Мы вышлем вам стоимость доставки, когда заказ будет готов. Пожалуйста, выберите нужный раздел 👇", reply_markup=markup)
                 await state.set_state("get_command")
         if order.service_type == "pick":
             order.status = "confirmed"
@@ -1418,17 +1418,17 @@ async def get_loc(message: types.Message, state: FSMContext):
             token = '333605228:LIVE:12098_B4831627769C70BA818FCFBF94A8FB7A6EDBB452'
             # token = "398062629:TEST:999999999_F91D8F69C042267444B74CC0B3C747757EB0E065"
             await bot.send_invoice(chat_id=message.from_user.id, title=f'Mustafa Turkish Cusine',
-                                description=f'Mustafa Turkish',
-                                provider_token=token,
-                                currency='UZS',
-                                photo_url=photo,
-                                photo_height=512,  # !=0/None or picture won't be shown
-                                photo_width=512,
-                                photo_size=512,
-                                prices=prices,
-                                start_parameter='hz-wto-tut',
-                                payload="Payload"
-                                )
+                                   description=f'Mustafa Turkish',
+                                   provider_token=token,
+                                   currency='UZS',
+                                   photo_url=photo,
+                                   photo_height=512,  # !=0/None or picture won't be shown
+                                   photo_width=512,
+                                   photo_size=512,
+                                   prices=prices,
+                                   start_parameter='hz-wto-tut',
+                                   payload="Payload"
+                                   )
             await state.set_state("payment") 
         else:   
             await clear_cart(message.from_user.id)
@@ -1449,16 +1449,24 @@ async def get_loc(message: types.Message, state: FSMContext):
             text += f"\n<b>To'lov: </b> 💴 Naqd pul orqali"
             text += f"\n\n<b>Izoh: </b> {order.comment}"
             order.status = 'confirmed'
+            order.longitude = data['longitude']
+            order.latitude = data['latitude']
             order.save()
-            await bot.send_message(chat_id=config.GROUPS_ID, text=text)
+            await bot.send_message(chat_id=config.GROUPS_ID, text=text, reply_markup=await admin_conf_btn(order_id=order.id))
             await clear_cart(message.from_user.id)
             markup = await user_menu(lang)
             if lang == "uz":
-                await message.answer("✔️ Buyurtma muvaffaqiyatli amalga oshirildi. Iltimos kerakli bo'limni tanlang 👇", reply_markup=markup)
+                await message.answer(
+                    "✔️ Buyurtma qabul qilindi. Buyurtma tayyor bo'lgandan so'ng sizga yetkazib berish narhini yuboramiz. Iltimos kerakli bo'limni tanlang 👇",
+                    reply_markup=markup)
             elif lang == "tr":
-                await message.answer("✔️ Sipariş başarıyla verildi. Lütfen istediğiniz bölümü seçin 👇", reply_markup=markup)
+                await message.answer(
+                    "✔️ Sipariş başarıyla verildi. Sipariş hazır olduğunda, size teslimat ücretini göndereceğiz. Lütfen istediğiniz bölümü seçin 👇",
+                    reply_markup=markup)
             elif lang == "ru":
-                await message.answer("✔️ Заказ был успешно размещен. Пожалуйста, выберите нужный раздел 👇", reply_markup=markup)
+                await message.answer(
+                    "✔️ Заказ был успешно размещен. Мы вышлем вам стоимость доставки, когда заказ будет готов. Пожалуйста, выберите нужный раздел 👇",
+                    reply_markup=markup)
             await state.set_state("get_command")
     if order.service_type == "pick":
         order.status = "confirmed"

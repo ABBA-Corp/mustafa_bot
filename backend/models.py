@@ -115,8 +115,14 @@ class Order(models.Model):
     pay_type = models.CharField(max_length=10, null=True, blank=True, choices=PAY_CHOISE)
     address = models.CharField(max_length=200, null=True, blank=True)
     service_type = models.CharField(max_length=25, null=True, blank=True)
+    name = models.CharField(max_length=400, verbose_name="Name", null=True)
+    longitude = models.CharField(max_length=400, verbose_name="Longitude", null=True)
+    latitude = models.CharField(max_length=400, verbose_name="Latitude", null=True)
     paid = models.BooleanField(default=False)
     status = models.CharField(max_length=100, null=True, blank=True, choices=STATUS, default='VAITING')
+
+    def __str__(self):
+        return str(self.id)
 
 
 class OrderDetail(models.Model):
@@ -137,6 +143,9 @@ class Location(models.Model):
     name = models.CharField(max_length=400, verbose_name="Name")
     longitude = models.CharField(max_length=400, verbose_name="Longitude")
     latitude = models.CharField(max_length=400, verbose_name="Latitude")
+
+    def __str__(self):
+        return self.user_id
 
 
 class Filial(models.Model):
